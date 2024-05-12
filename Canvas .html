@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signature Canvas</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+    }
+    #signatureCanvas {
+        border: 2px solid #000;
+        cursor: crosshair;
+        align-items: center;
+    }
+    .button {
+        border: none;
+        padding: 10px 20px;
+        margin: 5px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 16px;
+        text-align: center;
+    }
+    #saveButton {
+        background-color: green;
+        color: white;
+    }
+    #undoButton {
+        background-color: yellow;
+        color: black;
+    }
+    #clearButton {
+        background-color: red;
+        color: white;
+    }
+</style>
+</head>
+<body>
+<canvas id="signatureCanvas" width="400" height="200" ></canvas><br>
+<button id="saveButton" class="button">Save</button>
+<button id="undoButton" class="button">Undo</button>
+<button id="clearButton" class="button">Clear</button><br><br>
+<label for="brushSize">Brush Size: </label>
+<input type="range" id="brushSize" min="1" max="10" value="5"><br><br>
+<label for="textColor">Text Color: </label>
+<input type="color" id="textColor" value="#000000"><br><br>
+<label for="bgColor">Background Color: </label>
+<input type="color" id="bgColor" value="#ffffff"><br><br>
+
+<script>
+    window.onload = function() {
+        const canvas = document.getElementById('signatureCanvas');
+        const context = canvas.getContext('2d');
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        const saveButton = document.getElementById('saveButton');
+        const undoButton = document.getElementById('undoButton');
+        const clearButton = document.getElementById('clearButton');
+        const brushSizeInput = document.getElementById('brushSize');
+        const textColorInput = document.getElementById('textColor');
+        const bgColorInput = document.getElementById('bgColor');
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        saveButton.addEventListener('click', saveSignature);
+        undoButton.addEventListener('click', undo);
+        clearButton.addEventListener('click', clearCanvas);
+        brushSizeInput.addEventListener('change', updateBrushSize);
+        textColorInput.addEventListener('change', updateTextColor);
+        bgColorInput.addEventListener('change', updateBgColor);
+
+        function startDrawing(e) {
+            isDrawing = true;
+            [lastX, lastY] = [e.offsetX, e.offsetY];
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            context.beginPath();
+            context.moveTo(lastX, lastY);
+            context.lineTo(e.offsetX, e.offsetY);
+            context.strokeStyle = textColorInput.value;
+            context.lineWidth = brushSizeInput.value;
+            context.lineCap = 'round';
+            context.lineJoin = 'round';
+            context.stroke();
+            [lastX, lastY] = [e.offsetX, e.offsetY];
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        function saveSignature() {
+            const image = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.href = image;
+            link.download = 'signature.png';
+            link.click();
+        }
+
+        function undo() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function clearCanvas() {
+            context.fillStyle = bgColorInput.value;
+            context.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function updateBrushSize() {
+            context.lineWidth = brushSizeInput.value;
+        }
+
+        function updateTextColor() {
+            context.strokeStyle = textColorInput.value;
+        }
+
+        function updateBgColor() {
+            context.fillStyle = bgColorInput.value;
+            context.fillRect(0, 0, canvas.width, canvas.height);
+        }
+    }
+</script>
+</body>
+</html>
